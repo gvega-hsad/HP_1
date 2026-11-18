@@ -49,6 +49,7 @@ function useStackedStills(root: React.RefObject<HTMLElement | null>) {
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)')
     const tiles = Array.from(el.querySelectorAll<HTMLElement>('.collection__tile'))
     let raf = 0
+    let active = true // stacked-layout styles may be applied (cleared once when leaving)
 
     const last = tiles[tiles.length - 1]
     const portraits = el.querySelector<HTMLElement>('.collection__portraits')!
@@ -111,7 +112,18 @@ function useStackedStills(root: React.RefObject<HTMLElement | null>) {
 
     const update = () => {
       raf = 0
-      if (!narrow.matches || reduce.matches) return clear()
+      if (!narrow.matches || reduce.matches) {
+        // Clear our inline styles once when leaving the stacked layout, then stay out
+        // of the way: on desktop the Sorting Hat scene owns the McGonagall tile's
+        // visibility, and resetting it on every scroll made the tile flash back in
+        // its old spot mid-transition.
+        if (active) {
+          active = false
+          clear()
+        }
+        return
+      }
+      active = true
       grow()
       // the pile (all but the last still, which zooms instead of stacking)
       const pile = tiles.slice(0, -1)

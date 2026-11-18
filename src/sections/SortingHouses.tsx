@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import Collection, { tiles } from './Collection'
+import Collection from './Collection'
 import './SortingHouses.css'
 
 const A = '/assets'
@@ -41,9 +41,6 @@ const PHONE_BOTTOM = 408 + 552.909 // phone top + height in the comp (before --l
 const FIT_H = 800 // the comp scales down when the visible area is shorter than this
 const IMG_W = 1350
 const IMG_H = 760
-// McGonagall tile in Collection (Figma px on the 1600 frame; scaled by W / 1600)
-const TILE = tiles[3].win
-const TILE_IMG = tiles[3].img
 const PANEL_H = 1072 // parchment houses panel (Figma 693×1072 at x 783)
 const RAIL_PAD = 64 // breathing room above/below the panel inside the rail window
 
@@ -77,6 +74,7 @@ function useScene(scene: React.RefObject<HTMLDivElement | null>) {
     const bg = root.querySelector<HTMLElement>('.sorting__bg')!
     const bgWin = root.querySelector<HTMLElement>('.sorting__bg-win')!
     const tile = root.querySelector<HTMLElement>('.collection__tile--push')!
+    const tileImg = tile.querySelector('img')!
     const shade = root.querySelector<HTMLElement>('.sorting__shade')!
     const railWin = root.querySelector<HTMLElement>('.houses-rail')!
     const track = root.querySelector<HTMLElement>('.houses-rail__track')!
@@ -138,23 +136,34 @@ function useScene(scene: React.RefObject<HTMLDivElement | null>) {
       // 1. Morph: only the McGonagall image enlarges. Its crop window opens from the tile to
       //    the whole visible area while the photo travels straight from its in-tile size and
       //    position to its final framing on the right — one move, no stop at full screen.
-      const u = W / 1600
-      const wx = TILE.x * u
-      const wy = TILE.y * u - visTop // in .sorting coords (top of the visible area)
-      const ww = TILE.w * u
-      const wh = TILE.h * u
+      // Start from the tile as it is on screen right now — including its own rise-and-fade
+      // entrance if that's still playing — so the photo carries that motion on instead of
+      // jumping to the tile's final spot. Measured relative to Gallery+ (which drifts up
+      // during the move), in .sorting coords (origin = top of the visible area).
+      const cr = collection.getBoundingClientRect()
+      const tr = tile.getBoundingClientRect()
+      const ir = tileImg.getBoundingClientRect()
+      const wx = tr.left - cr.left
+      const wy = tr.top - cr.top - visTop
+      const ww = tr.width
+      const wh = tr.height
       const clip = [lerp(wy, 0, e), lerp(W - wx - ww, 0, e), lerp(visH - wy - wh, 0, e), lerp(wx, 0, e)]
       bgWin.style.clipPath = `inset(${clip.map((v) => `${v}px`).join(' ')})`
 
       const w2 = Math.max(0.8571 * W, (visH * IMG_W) / IMG_H)
-      const bw = lerp(TILE_IMG.w * u, w2, e)
-      const bx = lerp(wx + TILE_IMG.x * u, 0.3407 * W, e)
-      const by = lerp(wy + TILE_IMG.y * u, 0, e)
-      bg.style.transform = `translate3d(${bx}px, ${by}px, 0) scale(${bw / IMG_W})`
+      const bw = lerp(ir.width, w2, e)
+      const bx = lerp(ir.left - cr.left, 0.3407 * W, e)
+      const by = lerp(ir.top - cr.top - visTop, 0, e)
+      // Sized directly (not scaled): a scaled will-change layer keeps its first, small
+      // raster and goes soft/blocky as it grows, then pops sharp. This stays crisp.
+      bg.style.width = `${bw}px`
+      bg.style.height = `${(bw * IMG_H) / IMG_W}px`
+      bg.style.transform = `translate3d(${bx}px, ${by}px, 0)`
 
       // the tile hands its photo to the growing image as soon as the scene starts
+      // (matching the tile's opacity too, in case its fade-in hasn't finished)
       const handed = d > 0.5
-      bgWin.style.opacity = handed ? '1' : '0'
+      bgWin.style.opacity = handed ? getComputedStyle(tile).opacity : '0'
       tile.style.visibility = handed ? 'hidden' : 'visible'
 
       // the gradient rises with the move, so the image lands already shaded

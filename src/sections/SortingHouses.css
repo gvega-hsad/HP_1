@@ -68,11 +68,14 @@
   position: absolute;
   left: 0;
   top: 0;
-  width: 1350px;
+  width: 1350px; /* width/height + translate set per frame by JS */
   height: 760px;
   max-width: none;
-  transform-origin: 0 0;
-  will-change: transform;
+}
+
+/* Gallery+ fades and lifts away under the growing photo: keep it on its own layer */
+.scene--on .collection {
+  will-change: transform, opacity;
 }
 
 .sorting__shade {

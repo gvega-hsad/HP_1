@@ -1,0 +1,578 @@
+/* ------------------------------------------------------------------
+   Gallery+ → Sorting Hat → Houses: one pinned scroll scene
+   (driven by useScene in SortingHouses.tsx; layout values are Figma px)
+
+   .scene--on (≥1241px, motion allowed):
+     .scene__pin sticks while the scene's extra height scrolls by.
+     .collection is pushed into (transform set by JS); .sorting overlays
+     the visible part of the pin (--vis-top / --vis-h).
+   Without .scene--on the sections simply stack.
+------------------------------------------------------------------- */
+.scene {
+  position: relative;
+  background: var(--hp-ink);
+}
+
+.scene__pin {
+  container-type: inline-size; /* Gallery+ scales to this width (cqw) */
+}
+
+.scene--on {
+  height: var(--scene-h);
+  /* room below the pin so the phone, which runs past the fold, is seen in full on release */
+  margin-bottom: var(--phone-overflow, 0px);
+}
+
+.scene--on .scene__pin {
+  position: sticky;
+  top: var(--pin-top);
+  height: var(--pin-h);
+  /* clip sideways only: the phone may hang below the pin once it lets go */
+  overflow-x: clip;
+  overflow-y: visible;
+}
+
+/* ---------- Sorting overlay ---------- */
+.sorting {
+  position: relative;
+  overflow: clip;
+  background: var(--hp-ink);
+}
+
+.scene--on .sorting {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: var(--vis-top);
+  height: var(--vis-h);
+  overflow-x: clip;
+  overflow-y: visible;
+  background: none;
+  pointer-events: none;
+}
+
+.scene--on.is-sorting .sorting {
+  pointer-events: auto;
+}
+
+/* The McGonagall photo grows out of its Gallery+ tile: the window's clip-path and the
+   photo's translate + scale (of its natural box) are set by JS */
+.scene--on .sorting__bg-win {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  will-change: clip-path;
+}
+
+.scene--on .sorting__bg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1350px;
+  height: 760px;
+  max-width: none;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+.sorting__shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgb(26, 16, 19) 16.634%,
+    rgba(26, 16, 19, 0.93) 32.667%,
+    rgba(26, 16, 19, 0.691) 47.85%,
+    rgba(26, 16, 19, 0) 63.021%
+  );
+  pointer-events: none;
+}
+
+.scene--on .sorting__shade {
+  opacity: 0;
+}
+
+/* Comp (Figma px, scaled to fit the visible height). Horizontally it keeps the page's
+   margins: --comp-x puts the left column at 182/1600 of the window width, and --rail-dx
+   pushes the houses panel out so its right edge sits 124/1600 in from the right. */
+.scene--on .sorting__stage {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.scene--on .sorting__comp {
+  position: absolute;
+  left: var(--comp-x, 0px);
+  top: 0;
+  width: 1600px;
+  height: 1009px;
+  scale: var(--fit);
+  transform-origin: 0 0;
+}
+
+.scene--on .sorting__comp > * {
+  pointer-events: auto;
+}
+
+.scene--on .sorting__copy {
+  position: absolute;
+  left: 182px;
+  top: calc(64px + var(--lshift, 0px));
+}
+
+.scene--on .sorting__qr {
+  position: absolute;
+  left: 182px;
+  top: calc(311px + var(--lshift, 0px));
+}
+
+.scene--on .sorting__qr-frame {
+  position: absolute;
+  left: 119px;
+  top: calc(316px + var(--lshift, 0px));
+}
+
+.scene--on .sorting__phone {
+  position: absolute;
+  left: 483.11px;
+  top: calc(408px + var(--lshift, 0px));
+}
+
+/* houses wrapper / slide spacer: only used on phones */
+.houses-pin {
+  display: contents;
+}
+
+.sorting__travel {
+  display: none;
+}
+
+/* QR + accent + phone group: transparent to the desktop comp's absolute layout */
+.sorting__device,
+.sorting__device-inner {
+  display: contents;
+}
+
+/* "Get Sorted" only where the copy stacks (narrow screens) */
+.sorting__cta {
+  display: none;
+}
+
+/* Staged entrance (toggled by scroll, so it reverses when scrolling back) */
+/* Leaving (scrolling back up): quick and all together, so the column is gone
+   before the photo starts shrinking back into Gallery+ */
+.sc-step {
+  opacity: 0;
+  translate: 0 24px;
+  transition:
+    opacity 0.45s ease,
+    translate 0.6s ease;
+}
+
+/* Arriving: slow and staggered */
+.is-sorting .sc-step {
+  opacity: 1;
+  translate: 0 0;
+  transition:
+    opacity 1.1s cubic-bezier(0.2, 0.7, 0.2, 1),
+    translate 1.3s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition-delay: calc(var(--d, 0) * 0.12s);
+}
+
+.sorting__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 430px;
+}
+
+/* 430px aubergine card holding the QR code; Gryffindor branch frame overlays it */
+.sorting__qr {
+  position: relative;
+  width: 430px;
+  height: 430px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--hp-aubergine) url('/assets/aubergine-leather.jpg') center / cover;
+}
+
+.sorting__qr-code {
+  position: absolute;
+  left: 10.76%;
+  top: 25.59%;
+  width: 49.29%;
+  height: 49.03%;
+}
+
+.sorting__qr-frame {
+  width: 421px;
+  height: 421px;
+  max-width: none;
+  pointer-events: none !important;
+}
+
+/* Phone mockup 268×553 */
+.sorting__phone {
+  position: relative;
+  width: 268px;
+  height: 552.909px;
+  filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.45));
+}
+
+.sorting__screen {
+  position: absolute;
+  left: 11.41px;
+  top: 10.15px;
+  width: 246.019px;
+  height: 533.464px;
+  max-width: none;
+  object-fit: cover;
+  border: 0.423px solid var(--white);
+  border-radius: 38.044px;
+}
+
+.sorting__frame {
+  position: absolute;
+  inset: 0;
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+  mask-size: 100% 100%;
+  -webkit-mask-size: 100% 100%;
+}
+
+.sorting__frame img {
+  position: absolute;
+  left: -163.59px;
+  top: -0.42px;
+  width: 596.026px;
+  height: 554.6px;
+  max-width: none;
+  object-fit: cover;
+}
+
+/* ---------- Houses rail (vertical, right of the copy/QR/phone stack) ---------- */
+.houses-rail {
+  overflow: clip;
+}
+
+/* Window: Figma's panel column (x 783, 693 wide), the full visible height.
+   Lives inside the scaled comp, so it's in Figma px. */
+.scene--on .houses-rail {
+  position: absolute;
+  left: calc(783px + var(--rail-dx, 0px));
+  top: 0;
+  width: 693px;
+  height: var(--rail-h);
+  overflow: visible; /* no fade mask: the parchment stays fully opaque as it rises */
+}
+
+/* Parchment panel holding the four house cards (693×1072) */
+.houses-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 693px;
+  margin: 0;
+  padding: 30px 32px;
+  list-style: none;
+  border-radius: var(--radius-lg);
+  background: var(--hp-butterbeer) url('/assets/parchment.jpg') center / cover;
+  color: var(--black);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+}
+
+.scene--on .houses-rail__track {
+  will-change: transform;
+}
+
+.house-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 232px;
+  padding: 16px;
+}
+
+.house-card__banner {
+  flex: 0 0 200px;
+  width: 200px;
+  height: 216px;
+  align-self: flex-start;
+}
+
+.house-card__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.house-card__name {
+  font-family: var(--font-goudy);
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 1.16;
+  letter-spacing: -0.4px;
+  text-transform: capitalize;
+}
+
+.house-card__desc {
+  color: var(--grey-700);
+}
+
+.house-card__download {
+  margin-top: 8px;
+  padding-inline: 0; /* left-aligned with the house copy */
+  color: #1a1a1a;
+}
+
+/* Links in the rail only take clicks once it has arrived */
+.scene--on .houses-rail:not(.is-live) {
+  pointer-events: none;
+}
+
+/* ---------- Stacked layout (narrow screens / reduced motion) ---------- */
+.scene:not(.scene--on) .sorting {
+  display: grid;
+  justify-items: center;
+  gap: 40px;
+  padding: 0 24px 80px;
+}
+
+.scene:not(.scene--on) .sorting__bg-win {
+  justify-self: stretch;
+  margin-inline: -24px;
+}
+
+.scene:not(.scene--on) .sorting__bg {
+  width: 100%;
+  max-width: none;
+  height: 600px;
+  object-fit: cover;
+  object-position: 70% top;
+}
+
+.scene:not(.scene--on) .sorting__shade {
+  inset: 0 0 auto;
+  height: 600px;
+  background: linear-gradient(0deg, var(--hp-ink), rgba(26, 16, 19, 0) 50%);
+}
+
+.scene:not(.scene--on) .sorting__stage,
+.scene:not(.scene--on) .sorting__comp {
+  display: grid;
+  justify-items: center;
+  gap: 40px;
+}
+
+.scene:not(.scene--on) .sorting__copy {
+  width: min(600px, 100%);
+  margin-top: -160px;
+  position: relative;
+}
+
+.scene:not(.scene--on) .houses-panel {
+  width: min(693px, 100%);
+  padding: 24px 16px;
+}
+
+.scene:not(.scene--on) .house-card {
+  height: auto;
+}
+
+@media (max-width: 640px) {
+  .scene:not(.scene--on) .house-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sc-step {
+    transition: none;
+  }
+}
+
+/* Narrow screens: the Gallery+ McGonagall still grows into this backdrop. The section
+   is pulled up so its 600px photo sits exactly under the grown still when Gallery+
+   lets go, and the framing matches it (cover, centred). */
+@media (max-width: 1240px) {
+  .scene:not(.scene--on) .sorting {
+    margin-top: -600px;
+    position: relative;
+    background: none; /* the scene behind is ink already; don't paint over the stack */
+  }
+
+  .scene:not(.scene--on) .sorting__bg {
+    object-position: center;
+  }
+
+  /* the copy rises over the growing still (which sits above the stack, z 2) */
+  .scene:not(.scene--on) .sorting__stage {
+    position: relative;
+    z-index: 3;
+  }
+}
+
+/* ---------- Stacked layout: CTA + device group ---------- */
+.scene:not(.scene--on) .sorting__cta {
+  display: inline-flex;
+  width: 100%; /* same width as the body copy */
+  margin-top: 8px;
+}
+
+/* The group keeps its desktop composition (Figma px, origin at the accent's top-left)
+   and scales down as a whole to fit the column (--dev-scale, set in SortingHouses.tsx). */
+.scene:not(.scene--on) .sorting__device {
+  display: block;
+  position: relative;
+  width: calc(632px * var(--dev-scale, 1));
+  height: calc(650px * var(--dev-scale, 1));
+}
+
+.scene:not(.scene--on) .sorting__device-inner {
+  display: block;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 632px;
+  height: 650px;
+  scale: var(--dev-scale, 1);
+  transform-origin: 0 0;
+}
+
+.scene:not(.scene--on) .sorting__device-inner > .sorting__qr {
+  position: absolute;
+  left: 63px;
+  top: 0;
+  width: 430px;
+  height: 430px;
+}
+
+.scene:not(.scene--on) .sorting__device-inner > .sorting__qr-frame {
+  display: block;
+  position: absolute;
+  left: 0;
+  top: 5px;
+}
+
+.scene:not(.scene--on) .sorting__device-inner > .sorting__phone {
+  position: absolute;
+  left: 364.11px;
+  top: 97px;
+}
+
+/* ---------- Mobile: houses side-scroll in a row ----------
+   One row on the parchment, snapping card to card. Each card is 80% of the row so
+   the next house peeks in; a hairline divides the houses. Banners never exceed
+   half the window width. */
+@media (max-width: 767px) {
+  .scene:not(.scene--on) .houses-pin {
+    display: block;
+    justify-self: stretch;
+    min-width: 0;
+  }
+
+  .scene:not(.scene--on) .houses-rail {
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* The whole column pins (top set in JS) while the houses slide sideways, so the
+     phone and everything else hold still; the spacer after it is the scroll length. */
+  .scene:not(.scene--on) .sorting__stage {
+    position: sticky;
+    justify-self: stretch;
+  }
+
+  .scene:not(.scene--on) .sorting__travel {
+    display: block;
+  }
+
+  .scene:not(.scene--on) .houses-panel {
+    flex-direction: row;
+    gap: 0;
+    width: 100%; /* the track is max-content elsewhere; here it's the scroller */
+    min-width: 0;
+    padding: 24px 0;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    /* no snapping: the row follows the page scroll continuously (SortingHouses.tsx) */
+    scrollbar-width: none;
+  }
+
+  .scene:not(.scene--on) .houses-panel::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scene:not(.scene--on) .house-card {
+    flex: 0 0 68%;
+    flex-direction: column;
+    align-items: flex-start;
+    height: auto;
+    padding: 0 20px;
+  }
+
+  /* first house sits as far in from the paper's edge as the banners sit from its top */
+  .scene:not(.scene--on) .house-card:first-child {
+    margin-left: 24px;
+    padding-left: 0;
+  }
+
+  .scene:not(.scene--on) .house-card:last-child {
+    margin-right: 24px;
+  }
+
+  /* divider between houses */
+  .scene:not(.scene--on) .house-card + .house-card {
+    border-left: 1px solid rgba(26, 16, 19, 0.2);
+  }
+
+  .scene:not(.scene--on) .house-card__banner {
+    flex: none;
+    width: min(50vw, 160px);
+    height: auto;
+    aspect-ratio: 200 / 216;
+  }
+}
+
+/* Phones: half the space between the houses and the product carousel (232 → 116px,
+   with .products' top padding trimmed to match in ProductCarousel.css) */
+@media (max-width: 767px) {
+  .scene:not(.scene--on) .sorting {
+    padding-bottom: 47px;
+  }
+}
+
+/* ---------- Stacked layout: same depth-triggered rise + fade as the other sections ----------
+   The copy, Get Sorted, and the QR card / accent / phone each rise in when they reach
+   the trigger line (useRevealOnScroll), staggered like desktop, and replay on every
+   downward pass. Desktop's pinned scene keeps driving them with .is-sorting. */
+.scene:not(.scene--on) .reveal-stacked {
+  opacity: 0;
+  translate: 0 40px;
+  transition:
+    opacity 1.3s cubic-bezier(0.2, 0.7, 0.2, 1),
+    translate 1.3s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition-delay: calc(var(--d, 0) * 0.15s);
+}
+
+.scene:not(.scene--on) .reveal-stacked.is-in {
+  opacity: 1;
+  translate: 0 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene:not(.scene--on) .reveal-stacked {
+    opacity: 1;
+    translate: none;
+    transition: none;
+  }
+}

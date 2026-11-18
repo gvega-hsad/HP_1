@@ -1,0 +1,214 @@
+/* Figma "Hero" 167:8453 — full window width, like the hero.
+   Everything is laid out in Figma px on the 1600 frame and scaled to the
+   window with --u (1 Figma px). The copy keeps its type size, as in the hero. */
+.collection {
+  --u: calc(100cqw / 1600);
+  position: relative;
+  height: calc(887.62 * var(--u));
+  min-height: 640px;
+  overflow: clip; /* not "hidden": focus can scroll a hidden box sideways */
+  background: var(--hp-ink);
+}
+
+/* Staircase photo band: 600 Figma px tall (never shorter than the copy needs) */
+.collection__band {
+  position: absolute;
+  inset: 0 0 auto;
+  height: max(560px, calc(600 * var(--u)));
+  overflow: hidden;
+  background: var(--hp-aubergine);
+}
+
+/* 1600×1068 at y -234.38 in Figma → full window width */
+.collection__photo {
+  position: absolute;
+  left: 0;
+  top: calc(-234.38 * var(--u));
+  width: 100%;
+  height: auto;
+  min-height: calc(100% + 234.38 * var(--u));
+  max-width: none;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.collection__portraits {
+  position: absolute;
+  inset: 0;
+}
+
+.collection__tile {
+  position: absolute;
+  margin: 0;
+  overflow: hidden;
+}
+
+.collection__tile img {
+  position: absolute;
+  max-width: none;
+  object-fit: cover;
+}
+
+/* Copy on the right half, as in the hero (starts at 49.5% of the width) */
+.collection__content {
+  position: absolute;
+  left: 49.5%;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 24px;
+  width: min(808px, 50.5%);
+  height: max(560px, calc(600 * var(--u)));
+  padding: 48px 64px 16px;
+}
+
+.collection__text {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.collection__stack-end {
+  display: none;
+}
+
+/* ---------- Narrow screens: like the mobile hero ----------
+   Photo band across the top with the same dark fade; copy at the top over it
+   (as in the hero); the four stills stack in one column, starting over the photo
+   and running on below it. */
+@media (max-width: 1240px) {
+  .collection {
+    display: flex;
+    flex-direction: column;
+    overflow-anchor: none; /* the growing still must not trigger scroll anchoring */
+    height: auto;
+    min-height: 0;
+  }
+
+  .collection__band {
+    height: 600px;
+  }
+
+  .collection__band::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      rgba(26, 16, 19, 0.84) 0,
+      rgba(26, 16, 19, 0.5) 201px,
+      rgba(26, 16, 19, 0) 320px,
+      rgba(26, 16, 19, 0) 70%,
+      var(--hp-ink) 100%
+    );
+  }
+
+  .collection__photo {
+    top: 0;
+    height: 100%;
+    min-height: 0;
+    object-position: center top;
+  }
+
+  .collection__content {
+    position: relative;
+    left: auto;
+    z-index: 1;
+    order: -1; /* copy first, then the stills */
+    justify-content: flex-start;
+    gap: 16px;
+    width: 100%;
+    height: auto;
+    padding: 40px 24px 0;
+  }
+
+  .collection__text {
+    gap: 8px;
+  }
+
+  .collection__content .t3 {
+    font-size: 28px;
+    line-height: 1.18;
+  }
+
+  /* one column of stills, overlapping the photo */
+  .collection__portraits {
+    position: relative;
+    inset: auto;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+    max-width: 688px;
+    margin: 0 auto;
+    padding: 32px 24px 0;
+  }
+
+  /* the tiles' inline desktop geometry is overridden: each is a full-width 16:9 frame */
+  /* sticky: each still slides up over the previous and they pile into a stack,
+     each one resting 12px lower than the one beneath it */
+  .collection__tile {
+    position: sticky;
+    left: auto !important;
+    top: calc(68px + 24px + var(--d, 0) * 12px) !important;
+    transform-origin: center top;
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 16 / 9;
+    border-radius: 4px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+  }
+
+  .collection__tile img {
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  /* The last still doesn't join the pile: it stops just below it and zooms (driven by
+     --grow, 0 → 1, from Collection.tsx) to the full width, 600px tall, right under the
+     nav: the Sorting Hat backdrop's spot. */
+  .collection__tile--push {
+    z-index: 2;
+    top: var(--grow-y, 128px) !important; /* from just below the pile up to the nav (JS) */
+    width: calc(100% + var(--grow-w, 0px)) !important;
+    height: var(--grow-h, auto) !important;
+    margin-left: calc(-1 * var(--grow-l, 0px));
+    border-radius: calc(4px * (1 - var(--grow, 0)));
+  }
+
+  /* fades in the backdrop's bottom shade as it grows, so the hand-off is seamless */
+  .collection__tile--push::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(0deg, var(--hp-ink), rgba(26, 16, 19, 0) 50%);
+    opacity: var(--grow, 0);
+    pointer-events: none;
+  }
+
+  .collection__stack-end {
+    display: block;
+    height: 870px; /* set exactly by Collection.tsx (growth + hold room) */
+  }
+}
+
+/* ---------- Phones: hero spacing, full-width CTA ---------- */
+@media (max-width: 767px) {
+  .collection__content {
+    padding: 40px 16px 0;
+  }
+
+  .collection__portraits {
+    padding: 32px 16px 0;
+  }
+
+  /* CTA runs the full width of the body copy */
+  .collection__content > .reveal,
+  .collection__content .btn {
+    width: 100%;
+  }
+}

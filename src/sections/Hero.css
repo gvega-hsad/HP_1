@@ -1,0 +1,497 @@
+/* ------------------------------------------------------------------
+   HP_1 Hero — full window width
+   Motion layers:
+     photo     — slow Ken Burns intro + drift, scroll parallax (--sy)
+     headlight — warm flickering glow on the Hogwarts Express lamp
+     seal      — breathing rotation, rises on scroll
+     sparkles  — drifting candle-dust motes (canvas)
+     copy      — slow staggered reveal, gilded shimmer on the headline
+     lockup    — fades in through an SVG smoke filter (no movement)
+------------------------------------------------------------------- */
+.hero {
+  --sy: 0;
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ink-green: rgb(1, 10, 6);
+  position: relative;
+  height: 600px;
+  overflow: clip; /* not "hidden": focus can scroll a hidden box sideways */
+  background: var(--ink-green);
+  container-type: inline-size;
+}
+
+.hero__defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+.hero__bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Photo spans the full window width. It's sized to 120% of the window and
+   anchored right (trimming a little of the left edge) so the locomotive lands
+   just left of the copy, as in Figma. The headlight (72.6% down the image) is
+   held ~430px from the top of the hero at every width. */
+.hero__photo {
+  --w: max(120cqw, 1000px);
+  position: absolute;
+  right: 0;
+  top: calc(430px - var(--w) * 760 / 1139 * 0.726);
+  width: var(--w);
+  aspect-ratio: 1139 / 760;
+  transform: translate3d(0, calc(var(--sy) * 160px), 0);
+  will-change: transform;
+}
+
+.hero__photo-inner {
+  position: absolute;
+  inset: 0;
+  transform-origin: 58% 72%; /* zoom toward the locomotive */
+  animation: hero-photo-in 3.2s var(--ease-out) both;
+}
+
+.hero__photo-inner img {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  transform-origin: 58% 60%;
+  animation: hero-photo-drift 26s ease-in-out 3.2s infinite alternate;
+}
+
+/* Darken toward the copy on the right (Figma: rgb(1,10,6) 20% → clear at 48%) */
+.hero__shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(270deg, var(--ink-green) 20%, rgba(1, 10, 6, 0) 48%);
+}
+
+/* Warm lamp glow on the engine's headlight */
+.hero__headlight {
+  position: absolute;
+  left: 57.6%;
+  top: 72.6%;
+  width: 16.2%;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 244, 214, 0.9) 0%,
+    rgba(255, 214, 140, 0.45) 18%,
+    rgba(255, 180, 90, 0.12) 42%,
+    rgba(255, 180, 90, 0) 66%
+  );
+  mix-blend-mode: screen;
+  animation:
+    hero-fade-in 1.8s ease-out 1.8s both,
+    hero-lamp 3.4s ease-in-out 3.6s infinite;
+}
+
+/* 942×866 seal (8% opacity baked in), rotated 15°, anchored to the right edge
+   as in Figma (its 1135px box starts 680px left of the right edge) */
+.hero__seal {
+  position: absolute;
+  right: calc(-454.69px + (1134.686px - 942.644px) / 2);
+  top: calc(-396px + (1080.557px - 866.094px) / 2);
+  width: 942.644px;
+  height: 866.094px;
+  max-width: none;
+  rotate: calc(15deg + var(--sy) * 12deg);
+  translate: 0 calc(var(--sy) * -80px);
+  animation:
+    hero-seal-in 2.8s var(--ease-out) 0.8s both,
+    hero-seal-breathe 16s ease-in-out 3.6s infinite alternate;
+}
+
+.hero__sparkles {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  mix-blend-mode: screen;
+  animation: hero-fade-in 2.4s ease-out 2s both;
+}
+
+/* ---------- Lockup: smoke reveal ---------- */
+.hero__lockup {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  padding: 32px;
+}
+
+.hero__lockup img {
+  max-width: none;
+}
+
+.hero__lockup.is-waiting {
+  opacity: 0;
+}
+
+.hero__lockup.is-forming {
+  filter: url(#hero-smoke);
+  animation: hero-lockup-in 3.6s cubic-bezier(0.3, 0.4, 0.2, 1) both;
+}
+
+/* A soft plume that rises and dissipates as the logos condense */
+.hero__lockup-smoke {
+  position: absolute;
+  left: 10%;
+  top: 0;
+  width: 80%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(246, 238, 216, 0.35), rgba(246, 238, 216, 0) 70%);
+  filter: blur(18px);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.hero__lockup.is-forming .hero__lockup-smoke {
+  animation: hero-plume 4.2s ease-out both;
+}
+
+.hero__lockup-lg {
+  display: block;
+  width: 91.107px;
+  height: 40.447px;
+  margin-left: 10.6px;
+  margin-top: 4.16px;
+  overflow: hidden;
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+  mask-size: 91.107px 40.446px;
+  -webkit-mask-size: 91.107px 40.446px;
+}
+
+/* ---------- Copy (right half, as in Figma: starts at 49.5% of the width) ---------- */
+.hero__content {
+  position: absolute;
+  left: 49.5%;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 24px;
+  width: min(808px, 50.5%);
+  height: 600px;
+  padding: 48px 64px 16px;
+  translate: 0 calc(var(--sy) * -70px);
+  opacity: calc(1 - var(--sy) * 1.3);
+}
+
+.hero__text {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.hero__actions {
+  display: flex;
+  gap: 16px;
+}
+
+/* Slow, staggered reveal */
+.hero-reveal {
+  animation: hero-reveal 1.8s var(--ease-out) calc(0.9s + var(--d, 0) * 0.34s) both;
+}
+
+/* Gilded light sweep across the headline, after it lands and every ~10s */
+.hero__title {
+  background: linear-gradient(
+      100deg,
+      #fff 0%,
+      #fff 42%,
+      #fff3cf 47%,
+      #ffd98a 50%,
+      #fff3cf 53%,
+      #fff 58%,
+      #fff 100%
+    )
+    0 0 / 300% 100% no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation:
+    hero-reveal 1.8s var(--ease-out) calc(0.9s + var(--d, 0) * 0.34s) both,
+    hero-shimmer 10s ease-in-out 2.8s infinite;
+}
+
+/* ---------- Buttons ---------- */
+/* Hover behaviour for .hero__cta / .hero__link now lives on .btn (index.css) */
+
+.hero :focus-visible {
+  outline: 2px solid var(--hp-butterbeer);
+  outline-offset: 3px;
+}
+
+/* ---------- Keyframes ---------- */
+@keyframes hero-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+    filter: blur(8px);
+  }
+}
+
+@keyframes hero-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  26%,
+  100% {
+    background-position: 0% 0;
+  }
+}
+
+@keyframes hero-photo-in {
+  from {
+    opacity: 0;
+    transform: scale(1.12);
+    filter: brightness(0.4) blur(4px);
+  }
+}
+
+@keyframes hero-photo-drift {
+  to {
+    transform: scale(1.06) translate(-1%, -0.5%);
+  }
+}
+
+@keyframes hero-seal-in {
+  from {
+    opacity: 0;
+    scale: 0.92;
+  }
+}
+
+@keyframes hero-seal-breathe {
+  to {
+    transform: rotate(-3deg) scale(1.03);
+  }
+}
+
+@keyframes hero-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes hero-lockup-in {
+  from {
+    opacity: 0;
+  }
+  35% {
+    opacity: 0.55;
+  }
+}
+
+@keyframes hero-plume {
+  0% {
+    opacity: 0;
+    transform: translateY(16px) scale(0.7, 0.5);
+  }
+  30% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-46px) scale(1.5, 1.4);
+  }
+}
+
+/* Lamp flicker: mostly steady with a couple of quick dips */
+@keyframes hero-lamp {
+  0%,
+  100% {
+    opacity: 0.85;
+    scale: 1;
+  }
+  20% {
+    opacity: 1;
+    scale: 1.06;
+  }
+  23% {
+    opacity: 0.7;
+  }
+  26% {
+    opacity: 0.95;
+  }
+  60% {
+    opacity: 0.8;
+    scale: 0.97;
+  }
+  62% {
+    opacity: 1;
+  }
+}
+
+/* ---------- Reduced motion: static composition ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .hero *,
+  .hero *::after {
+    animation: none !important;
+  }
+
+  .hero__photo,
+  .hero__content {
+    transform: none;
+    opacity: 1;
+  }
+
+  .hero__content {
+    translate: none;
+  }
+
+  .hero__seal {
+    rotate: 15deg;
+    translate: none;
+  }
+
+  .hero__title {
+    background: none;
+    color: var(--white);
+  }
+}
+
+/* ---------- Narrow screens: copy takes the full width over a darker photo ---------- */
+@media (max-width: 960px) {
+  .hero {
+    height: auto;
+    min-height: 600px;
+  }
+
+  .hero__shade {
+    background: linear-gradient(0deg, var(--ink-green) 10%, rgba(1, 10, 6, 0.55) 60%, rgba(1, 10, 6, 0.2));
+  }
+
+  .hero__content {
+    position: relative;
+    left: auto;
+    width: 100%;
+    height: auto;
+    min-height: 600px;
+    padding: 80px 24px 140px;
+  }
+}
+
+/* ---------- Lockup: interactive smoke on hover (useSmokeLogo) ---------- */
+/* Overlay canvas covering the lockup plus room for smoke to rise and drift */
+.hero__lockup-canvas {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 760px;
+  max-width: 100%;
+  height: 520px;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.hero__lockup.is-smoking > img,
+.hero__lockup.is-smoking .hero__lockup-lg {
+  opacity: 0;
+}
+
+/* Fallback when WebGL2 isn't available: a soft haze instead */
+.hero__lockup.has-haze > img,
+.hero__lockup.has-haze .hero__lockup-lg {
+  transition:
+    opacity 1.4s ease,
+    filter 1.4s ease,
+    translate 1.6s var(--ease-out);
+}
+
+.hero__lockup.is-hazy > img,
+.hero__lockup.is-hazy .hero__lockup-lg {
+  opacity: 0.2;
+  filter: blur(6px);
+  translate: 0 -10px;
+}
+
+/* ---------- Mobile (Figma "HP_1_mobile", 375 wide) ----------
+   600px tall. Copy sits at the top over a dark fade; the train photo (1064px wide)
+   and the wax seal are positioned as in Figma relative to the centre of the screen,
+   so wider phones keep the same framing. Lockup at 79.77% scale, bottom-left. */
+@media (max-width: 767px) {
+  .hero {
+    height: 600px;
+    min-height: 0;
+  }
+
+  .hero__photo {
+    --w: 1064px;
+    left: calc(50% - 549.5px); /* = -362px at 375 */
+    right: auto;
+    top: -56px;
+  }
+
+  /* Figma: #010a06 → 50% → clear, from the top of the photo layer */
+  .hero__shade {
+    background: linear-gradient(
+      180deg,
+      rgba(1, 10, 6, 0.84) 0,
+      rgba(1, 10, 6, 0.5) 201px,
+      rgba(1, 10, 6, 0) 320px
+    );
+  }
+
+  .hero__seal {
+    left: calc(50% - 62.55px); /* = 124.95px at 375 */
+    right: auto;
+    top: -55.16px;
+    width: 341.757px;
+    height: 314.004px;
+  }
+
+  .hero__content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    justify-content: flex-start;
+    gap: 16px;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    padding: 40px 16px;
+  }
+
+  .hero__text {
+    gap: 8px;
+  }
+
+  .hero__title {
+    font-size: 28px;
+    line-height: 1.18;
+  }
+
+  .hero__actions {
+    gap: 16px;
+  }
+
+  .hero__cta {
+    flex: 1;
+    border-color: var(--grey-500);
+  }
+
+  .hero__cta-icon {
+    display: none;
+  }
+
+  .hero__link {
+    flex: none;
+  }
+
+  .hero__lockup {
+    bottom: -3.44px;
+    scale: 0.7977;
+    transform-origin: left bottom;
+  }
+}

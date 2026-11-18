@@ -1,0 +1,279 @@
+/* ------------------------------------------------------------------
+   HP_1 — design tokens (from Figma: 26-CSGI-1785 Harry Potter LP)
+   Brand fonts (LG EI, Goudy Old Style, Jazmin) are proprietary; each
+   stack lists the real face first so it is used when installed, then
+   a close web fallback.
+------------------------------------------------------------------- */
+:root {
+  /* Harry Potter brand */
+  --hp-aubergine: #432538;
+  --hp-butterbeer: #f6eed8;
+  --hp-ink: #1a1013;
+
+  /* LG system */
+  --lg-red: #ea1917;
+  --lg-sand: #f0ece4;
+  --lg-sand-border: #cbc8c2;
+  --lg-navy: #00001d;
+  --grey-500: #646464;
+  --grey-700: #333333;
+  --white: #ffffff;
+  --black: #000000;
+
+  --font-lg: 'LG EI', 'LG Smart', 'Figtree', system-ui, sans-serif;
+  --font-goudy: 'Goudy Old Style', 'GoudyOldSty', 'Sorts Mill Goudy', Georgia, serif;
+  --font-jazmin: 'Jazmin', 'Cormorant Garamond', Georgia, serif;
+
+  --content: 1236px;
+  --gutter: 182px;
+  --radius-lg: 32px;
+  --radius-md: 24px;
+  --radius-sm: 16px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--hp-ink);
+  color: var(--white);
+  font-family: var(--font-goudy);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+p,
+h1,
+h2,
+h3,
+ul {
+  margin: 0;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+}
+
+/* ---------- Layout ---------- */
+.container {
+  width: min(var(--content), 100% - 2 * 24px);
+  margin-inline: auto;
+}
+
+/* Fixed 1600px art-directed canvas for collage-style sections (HP_1).
+   Centered; side gutters crop on narrower desktops, and each section
+   switches to a stacked layout below 1240px. */
+.stage {
+  position: relative;
+  width: 1600px;
+  left: 50%;
+  translate: -50% 0;
+  height: 100%;
+}
+
+/* ---------- Typography ----------
+   Every text style uses the hero's Harry Potter type pairing:
+   Goudy Old Style Bold (eyebrows, subtitles, buttons),
+   Jazmin Medium (headlines), Goudy Old Style Regular (body). */
+.overline {
+  font-family: var(--font-goudy);
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 1.12;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+/* Product eyebrows (model numbers): LG EI Text, all caps */
+.overline--lg {
+  font-family: 'LG EI Text', var(--font-lg);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.t3 {
+  font-family: var(--font-jazmin);
+  font-weight: 500;
+  font-size: 40px;
+  line-height: 1.08;
+  letter-spacing: -0.4px;
+}
+
+.subtitle-2 {
+  font-family: var(--font-goudy);
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 1.13;
+}
+
+.subtitle-3 {
+  font-family: var(--font-goudy);
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 1.16;
+}
+
+.body-2 {
+  font-family: var(--font-goudy);
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.38;
+}
+
+/* Harry Potter brand variants */
+.font-jazmin {
+  font-family: var(--font-jazmin);
+  font-weight: 500;
+}
+
+.font-goudy {
+  font-family: var(--font-goudy);
+  font-weight: 400;
+}
+
+.font-goudy-bold {
+  font-family: var(--font-goudy);
+  font-weight: 700;
+}
+
+/* Centered section header used across sections (CTAwithText) */
+.section-header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  text-align: center;
+  max-width: 732px;
+  margin-inline: auto;
+}
+
+/* ---------- Buttons ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 64px;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 32px;
+  border: 1px solid transparent;
+  font-family: var(--font-goudy);
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-decoration: none;
+  background: none;
+  color: inherit;
+}
+
+/* Every CTA behaves like the hero's: buttons lift with a warm glow and turn butterbeer,
+   their icon swells; text links ease their underline down and warm in colour. */
+.btn {
+  gap: 8px;
+  transition:
+    transform 280ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    box-shadow 280ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    background-color 280ms ease,
+    border-color 280ms ease,
+    color 240ms ease,
+    text-underline-offset 240ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.btn > svg {
+  transition: transform 280ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.btn--primary:hover,
+.btn--primary:focus-visible,
+.btn--secondary:hover,
+.btn--secondary:focus-visible {
+  background: var(--hp-butterbeer);
+  border-color: var(--hp-butterbeer);
+  color: var(--black);
+  transform: translateY(-2px);
+  box-shadow:
+    0 10px 28px rgba(255, 214, 140, 0.28),
+    0 0 0 4px rgba(246, 238, 216, 0.12);
+}
+
+.btn:hover > svg {
+  transform: scale(1.2);
+}
+
+.btn--primary:active,
+.btn--secondary:active {
+  transform: translateY(0);
+}
+
+.btn--text {
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+
+.btn--text:hover,
+.btn--text:focus-visible {
+  color: var(--hp-butterbeer);
+  text-underline-offset: 6px;
+}
+
+/* On parchment / white the warm colour is aubergine so the link stays readable */
+.house-card .btn--text:hover,
+.house-card .btn--text:focus-visible {
+  color: var(--hp-aubergine);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--hp-butterbeer);
+  outline-offset: 3px;
+}
+
+.btn--primary {
+  background: var(--lg-red);
+  color: var(--white);
+}
+
+.btn--secondary {
+  background: var(--white);
+  color: var(--black);
+  border-color: var(--grey-500);
+}
+
+.btn--text {
+  padding: 0 16px;
+  text-decoration: underline;
+  text-underline-position: from-font;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (max-width: 960px) {
+  .t3 {
+    font-size: 32px;
+  }
+}

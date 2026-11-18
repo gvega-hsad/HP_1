@@ -46,16 +46,6 @@ const products: Product[] = [
     name: 'Lorem ipsum dolor sit amet',
     features: ['Consectetur adipiscing elit', 'Sed do eiusmod tempor', 'Ut labore et dolore magna', 'Quis nostrud exercitation'],
   },
-  {
-    model: 'ModelNumber',
-    name: 'Product Name Goes Here & Can Wrap Onto Two Lines - Trunc...',
-    features: ['<Key Feature>', '<Key Feature>', '<Key Feature>', '<Key Feature>'],
-  },
-  {
-    model: 'ModelNumber',
-    name: 'Product Name Goes Here & Can Wrap Onto Two Lines - Trunc...',
-    features: ['<Key Feature>', '<Key Feature>', '<Key Feature>', '<Key Feature>'],
-  },
 ]
 
 const CARD_GAP = 18

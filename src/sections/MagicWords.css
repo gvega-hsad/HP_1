@@ -109,7 +109,6 @@
 .magic__paper {
   --t: 4.2s; /* keep in sync with FORM_MS */
   --ease: cubic-bezier(0.45, 0, 0.55, 1);
-  --steps-at: calc(var(--t) * 0.72); /* first step, as the paper settles */
   --step-gap: 0.75s;
 }
 
@@ -208,9 +207,10 @@
   opacity: 0;
 }
 
-.magic__paper.is-in .magic__step {
+.magic__paper.steps-in .magic__step {
   opacity: 1;
-  transition: opacity 1.3s var(--ease) calc(var(--steps-at) + var(--i, 0) * var(--step-gap));
+  /* .steps-in is added once the paper has settled AND is on screen (MagicWords.tsx) */
+  transition: opacity 1.3s var(--ease) calc(var(--i, 0) * var(--step-gap));
 }
 
 /* Smoke: soft parchment-coloured puffs across the strip that swell, drift right
@@ -369,9 +369,9 @@
   color: transparent;
 }
 
-.magic__paper.is-in .magic__num {
+.magic__paper.steps-in .magic__num {
   /* each number flashes gold as its step fades in, then every 9s */
-  animation: magic-num-shine 9s ease-in-out calc(var(--steps-at) + var(--i, 0) * var(--step-gap) + 0.35s) infinite;
+  animation: magic-num-shine 9s ease-in-out calc(var(--i, 0) * var(--step-gap) + 0.35s) infinite;
 }
 
 @keyframes magic-num-shine {
@@ -394,7 +394,7 @@
 
 /* Hovering a step plays the sweep on its number straight away (a separate animation
    name restarts it from the beginning) */
-.magic__paper.is-in .magic__step:hover .magic__num {
+.magic__paper.steps-in .magic__step:hover .magic__num {
   animation: magic-num-hover 1.6s ease-in-out both;
 }
 
@@ -421,7 +421,7 @@
     opacity: 1;
   }
 
-  .magic__paper.is-in .magic__step,
+  .magic__paper.steps-in .magic__step,
   .magic__paper.is-in .magic__parchment,
   .magic__paper.is-in .magic__smoke i,
   .magic__paper.is-in .magic__sparks b {
@@ -429,7 +429,7 @@
     transition: none;
   }
 
-  .magic__paper.is-in .magic__num {
+  .magic__paper.steps-in .magic__num {
     animation: none;
   }
 

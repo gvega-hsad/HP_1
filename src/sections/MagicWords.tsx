@@ -62,9 +62,61 @@ function useSmokeMaterialise(paper: React.RefObject<HTMLDivElement | null>) {
   }, [paper])
 }
 
+const SETTLE_MS = 3000 // the paper is all but formed by then (≈72% of FORM_MS)
+
+/**
+ * The steps wait for two things before fading in one at a time (.steps-in): the paper
+ * has settled, and it is actually on screen. The paper starts forming well before it
+ * arrives (data-reveal-lead), so without this the steps could finish while still below
+ * the fold and never be seen animating. Resets with the paper's reveal.
+ */
+function useStepsGate(paper: React.RefObject<HTMLDivElement | null>) {
+  useEffect(() => {
+    const root = paper.current
+    if (!root) return
+    let inSince = 0
+    let visible = false
+    let timer = 0
+    const check = () => {
+      const isIn = root.classList.contains('is-in')
+      if (!isIn) {
+        inSince = 0
+        window.clearTimeout(timer)
+        // only when present: removing an absent class still fires the observer → loop
+        if (root.classList.contains('steps-in')) root.classList.remove('steps-in')
+        return
+      }
+      if (!inSince) inSince = performance.now()
+      if (root.classList.contains('steps-in')) return
+      const wait = SETTLE_MS - (performance.now() - inSince)
+      if (wait > 0) {
+        window.clearTimeout(timer)
+        timer = window.setTimeout(check, wait + 20)
+      } else if (visible) root.classList.add('steps-in')
+    }
+    const io = new IntersectionObserver(
+      ([e]) => {
+        visible = e.intersectionRatio >= 0.5
+        check()
+      },
+      { threshold: [0, 0.5, 1] },
+    )
+    io.observe(root)
+    const mo = new MutationObserver(check)
+    mo.observe(root, { attributes: true, attributeFilter: ['class'] })
+    check()
+    return () => {
+      io.disconnect()
+      mo.disconnect()
+      window.clearTimeout(timer)
+    }
+  }, [paper])
+}
+
 export default function MagicWords() {
   const paper = useRef<HTMLDivElement>(null)
   useSmokeMaterialise(paper)
+  useStepsGate(paper)
 
   return (
     <section className="magic" data-section="magic-words">

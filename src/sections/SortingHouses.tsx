@@ -103,7 +103,6 @@ function useScene(scene: React.RefObject<HTMLDivElement | null>) {
     let on = false
     let raf = 0
     let cur = -1 // smoothed scroll distance into the scene
-    let lastD = 0
     let mp = 0 // morph progress 0..1 (time-driven)
     let want = 0 // where the morph is heading
     let reverseAt = 0 // time the morph may start back (after the column has left)
@@ -227,7 +226,6 @@ function useScene(scene: React.RefObject<HTMLDivElement | null>) {
       // Left column: arrives as the photo lands; on the way back up it leaves first (above),
       // while the photo is still in place
       if (want === 1 && e > 0.78) root.classList.add('is-sorting')
-      lastD = d
 
       // 3. Rail: the houses panel stays below the fold until the rail phase, then rises
       //    through its window while the copy, QR and phone hold still

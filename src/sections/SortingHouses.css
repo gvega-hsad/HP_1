@@ -117,7 +117,9 @@
   transform-origin: 0 0;
 }
 
-.scene--on .sorting__comp > * {
+/* the copy, QR, phone and houses only take clicks once the Sorting Hat is showing;
+   before that, Gallery+ beneath them (its clickable stills) must get the pointer */
+.scene--on.is-sorting .sorting__comp > * {
   pointer-events: auto;
 }
 
@@ -216,6 +218,81 @@
   height: 421px;
   max-width: none;
   pointer-events: none !important;
+}
+
+/* ---------- QR flare (same gilded flash as the webOS step numbers) ----------
+   A band of gold light sweeps across the code's white squares only (masked by the code
+   image itself; the card and its background are untouched), as the card lands, then
+   every 9s; hovering the card plays it straight away. */
+.sorting__qr-shine {
+  position: absolute;
+  left: 10.76%;
+  top: 25.59%;
+  width: 49.29%;
+  height: 49.03%;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  /* a soft champagne glint: wide feathered edges, a pale-gold body and a near-white
+     core, so the code warms and catches the light rather than turning dark gold */
+  background: linear-gradient(
+      100deg,
+      rgba(255, 236, 190, 0) 0%,
+      rgba(255, 236, 190, 0) 38%,
+      rgba(255, 236, 190, 0.35) 43%,
+      rgba(248, 222, 160, 0.75) 47%,
+      rgba(255, 250, 236, 0.95) 50%,
+      rgba(248, 222, 160, 0.75) 53%,
+      rgba(255, 236, 190, 0.35) 57%,
+      rgba(255, 236, 190, 0) 62%,
+      rgba(255, 236, 190, 0) 100%
+    )
+    100% 0 / 300% 100% no-repeat;
+  pointer-events: none;
+}
+
+/* landed: desktop scene (.is-sorting) or the stacked layout (its reveal) */
+.is-sorting .sorting__qr,
+.scene:not(.scene--on) .sorting__qr.is-in {
+  --qr-at: calc(var(--d, 0) * 0.12s + 1s); /* once the card has settled */
+}
+
+.is-sorting .sorting__qr-shine,
+.scene:not(.scene--on) .sorting__qr.is-in .sorting__qr-shine {
+  animation: qr-sweep 9s ease-in-out var(--qr-at) infinite;
+}
+
+/* hover: a separate animation name restarts it from the beginning */
+.is-sorting .sorting__qr:hover .sorting__qr-shine,
+.scene:not(.scene--on) .sorting__qr.is-in:hover .sorting__qr-shine {
+  animation: qr-sweep-hover 1.9s ease-in-out both;
+}
+
+@keyframes qr-sweep {
+  0% {
+    background-position: 100% 0;
+  }
+  22%,
+  100% {
+    background-position: 0% 0;
+  }
+}
+
+@keyframes qr-sweep-hover {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sorting__qr-shine {
+    animation: none !important;
+    display: none;
+  }
 }
 
 /* Phone mockup 268×553 */

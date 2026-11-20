@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import ImageModal from '../components/ImageModal'
 import './Collection.css'
 
 const A = '/assets'
@@ -159,8 +160,11 @@ function useStackedStills(root: React.RefObject<HTMLElement | null>) {
   }, [root])
 }
 
+const modalImages = tiles.map((t) => ({ src: `${A}/${t.img.src}`, alt: t.alt }))
+
 export default function Collection() {
   const section = useRef<HTMLElement>(null)
+  const [viewing, setViewing] = useState<number | null>(null)
   useStackedStills(section)
   return (
     <section className="collection" data-section="collection" ref={section}>
@@ -177,8 +181,15 @@ export default function Collection() {
           >
             <img
               src={`${A}/${t.img.src}`}
-              alt={t.alt}
+              alt=""
               style={{ left: u(t.img.x), top: u(t.img.y), width: u(t.img.w), height: u(t.img.h) }}
+            />
+            {/* opens the still in the lightbox; hover/focus zooms it within its frame */}
+            <button
+              type="button"
+              className="collection__open"
+              aria-label={`View image: ${t.alt}`}
+              onClick={() => setViewing(n)}
             />
           </figure>
         ))}
@@ -199,6 +210,13 @@ export default function Collection() {
           <a className="btn btn--secondary" href="#">See the Collection</a>
         </div>
       </div>
+      <ImageModal
+        images={modalImages}
+        index={viewing}
+        onIndex={setViewing}
+        onClose={() => setViewing(null)}
+        label="Harry Potter Collection on LG Gallery+"
+      />
     </section>
   )
 }

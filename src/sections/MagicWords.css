@@ -33,17 +33,34 @@
   padding-left: 50px;
 }
 
+/* the parchment strip: a paper layer (materialises from smoke) with the steps on top */
+.magic__paper {
+  position: relative;
+  margin: 0 40px;
+  color: var(--black);
+}
+
+.magic__feather {
+  position: absolute;
+  inset: 0;
+}
+
+.magic__parchment {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-lg);
+  background: var(--hp-butterbeer) url('/assets/parchment.jpg') center / cover;
+}
+
 .magic__steps {
   position: relative;
+  z-index: 3;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 33px;
-  margin: 0 40px;
+  margin: 0;
   padding: 64px 52px;
   list-style: none;
-  border-radius: var(--radius-lg);
-  background: var(--hp-butterbeer) url('/assets/parchment.jpg') center / cover;
-  color: var(--black);
 }
 
 .magic__step {
@@ -77,19 +94,261 @@
   color: var(--grey-700);
 }
 
-/* ---------- Entrance: parchment first, then each step, then the numbers shine ---------- */
-.magic__step {
-  opacity: 0;
-  translate: 0 32px;
-  transition:
-    opacity 1.1s cubic-bezier(0.2, 0.7, 0.2, 1),
-    translate 1.2s cubic-bezier(0.2, 0.7, 0.2, 1);
-  transition-delay: calc(0.9s + var(--i, 0) * 0.45s);
+/* ---------- Entrance ----------
+   The parchment materialises out of smoke (SVG turbulence filter on the paper layer
+   only, MagicWords.tsx) while a soft mask sweeps it in from left to right, as on
+   HP_2's webOS cards; cream puffs and gold motes drift right along it, trailing the
+   sweep. As the paper settles, the steps fade in place one at a time, and each
+   number flashes gold as its step appears. Replays on every downward pass. */
+.magic__defs {
+  position: absolute;
+  width: 0;
+  height: 0;
 }
 
-.magic__steps.is-in .magic__step {
+.magic__paper {
+  --t: 4.2s; /* keep in sync with FORM_MS */
+  --ease: cubic-bezier(0.45, 0, 0.55, 1);
+  --steps-at: calc(var(--t) * 0.72); /* first step, as the paper settles */
+  --step-gap: 0.75s;
+}
+
+/* the paper runs its own entrance, not the generic rise */
+.magic__paper.reveal {
   opacity: 1;
-  translate: 0 0;
+  translate: none;
+  transition: none;
+}
+
+.magic__parchment {
+  opacity: 0;
+}
+
+.magic__paper.is-in .magic__parchment {
+  animation:
+    magic-materialise var(--t) var(--ease) both,
+    magic-sweep var(--t) var(--ease) backwards;
+}
+
+/* Edge feather: the paper's four edges fade out softly while it materialises (and hide
+   the smoke filter's ragged rim), tightening to crisp edges as it finishes */
+@property --fx {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --fy {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+.magic__paper.is-in .magic__feather {
+  -webkit-mask-image:
+    linear-gradient(90deg, transparent 0, #000 var(--fx), #000 calc(100% - var(--fx)), transparent 100%),
+    linear-gradient(180deg, transparent 0, #000 var(--fy), #000 calc(100% - var(--fy)), transparent 100%);
+  mask-image:
+    linear-gradient(90deg, transparent 0, #000 var(--fx), #000 calc(100% - var(--fx)), transparent 100%),
+    linear-gradient(180deg, transparent 0, #000 var(--fy), #000 calc(100% - var(--fy)), transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+  animation: magic-feather var(--t) var(--ease) both;
+}
+
+@keyframes magic-feather {
+  0%,
+  60% {
+    --fx: 160px;
+    --fy: 95px;
+  }
+  100% {
+    --fx: 0px;
+    --fy: 0px;
+  }
+}
+
+@keyframes magic-materialise {
+  0% {
+    opacity: 0;
+  }
+  40% {
+    opacity: 0.3;
+  }
+  75% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* one wide soft edge travelling left to right across the whole strip */
+@keyframes magic-sweep {
+  from {
+    -webkit-mask-image: linear-gradient(90deg, #000 40%, transparent 60%);
+    mask-image: linear-gradient(90deg, #000 40%, transparent 60%);
+    -webkit-mask-size: 250% 100%;
+    mask-size: 250% 100%;
+    -webkit-mask-position: 100% 0;
+    mask-position: 100% 0;
+  }
+  to {
+    -webkit-mask-image: linear-gradient(90deg, #000 40%, transparent 60%);
+    mask-image: linear-gradient(90deg, #000 40%, transparent 60%);
+    -webkit-mask-size: 250% 100%;
+    mask-size: 250% 100%;
+    -webkit-mask-position: 0% 0;
+    mask-position: 0% 0;
+  }
+}
+
+/* Steps: fade in place, one at a time */
+.magic__step {
+  opacity: 0;
+}
+
+.magic__paper.is-in .magic__step {
+  opacity: 1;
+  transition: opacity 1.3s var(--ease) calc(var(--steps-at) + var(--i, 0) * var(--step-gap));
+}
+
+/* Smoke: soft parchment-coloured puffs across the strip that swell, drift right
+   and thin out, each following the sweep (--x: its position along the strip) */
+.magic__smoke {
+  position: absolute;
+  inset: -18% -4%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.magic__smoke i {
+  --lag: calc(var(--x) * var(--t) * 0.6);
+  position: absolute;
+  left: calc(var(--x) * 88%);
+  width: 18%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(246, 238, 216, 0.55) 0%, rgba(246, 238, 216, 0.18) 45%, rgba(246, 238, 216, 0) 70%);
+  filter: blur(16px);
+  opacity: 0;
+  mix-blend-mode: screen;
+}
+
+.magic__smoke i:nth-child(1) { --x: 0;    top: 46%; --dx: 60px;  --dy: -60px; --r: -20deg; }
+.magic__smoke i:nth-child(2) { --x: 0.12; top: 6%;  --dx: 90px;  --dy: -40px; --r: 15deg; }
+.magic__smoke i:nth-child(3) { --x: 0.26; top: 52%; --dx: 110px; --dy: -70px; --r: 25deg; }
+.magic__smoke i:nth-child(4) { --x: 0.4;  top: 10%; --dx: 80px;  --dy: -50px; --r: -10deg; }
+.magic__smoke i:nth-child(5) { --x: 0.54; top: 48%; --dx: 120px; --dy: -60px; --r: 20deg; }
+.magic__smoke i:nth-child(6) { --x: 0.68; top: 8%;  --dx: 90px;  --dy: -40px; --r: -15deg; }
+.magic__smoke i:nth-child(7) { --x: 0.82; top: 50%; --dx: 70px;  --dy: -70px; --r: 10deg; }
+.magic__smoke i:nth-child(8) { --x: 0.96; top: 12%; --dx: 50px;  --dy: -50px; --r: -25deg; }
+
+.magic__paper.is-in .magic__smoke i {
+  animation: magic-smoke calc(var(--t) * 0.85) var(--ease) var(--lag) both;
+}
+
+@keyframes magic-smoke {
+  0% {
+    opacity: 0;
+    translate: 0 30px;
+    scale: 0.35;
+    rotate: 0deg;
+  }
+  30% {
+    opacity: 0.85;
+  }
+  70% {
+    opacity: 0.35;
+  }
+  100% {
+    opacity: 0;
+    translate: var(--dx) var(--dy);
+    scale: 1.7;
+    rotate: var(--r);
+  }
+}
+
+/* Sparks: tiny gilded motes that wink on along the strip and float upward */
+.magic__sparks {
+  position: absolute;
+  inset: -6% 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.magic__sparks b {
+  --lag: calc(var(--x) * var(--t) * 0.6 + 0.2s);
+  position: absolute;
+  left: calc(var(--x) * 100%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #fff3cf;
+  box-shadow:
+    0 0 6px 2px rgba(255, 217, 138, 0.9),
+    0 0 18px 6px rgba(255, 196, 92, 0.35);
+  opacity: 0;
+}
+
+.magic__sparks b:nth-child(3n)::before,
+.magic__sparks b:nth-child(3n)::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 22px;
+  height: 1.5px;
+  translate: -50% -50%;
+  background: linear-gradient(90deg, transparent, #fff3cf, transparent);
+}
+
+.magic__sparks b:nth-child(3n)::after {
+  rotate: 90deg;
+}
+
+.magic__sparks b:nth-child(1)  { --x: 0.03; top: 72%; --sx: -10px; --sy2: -120px; }
+.magic__sparks b:nth-child(2)  { --x: 0.1;  top: 20%; --sx: 12px;  --sy2: -80px; }
+.magic__sparks b:nth-child(3)  { --x: 0.17; top: 84%; --sx: 6px;   --sy2: -150px; }
+.magic__sparks b:nth-child(4)  { --x: 0.24; top: 40%; --sx: -14px; --sy2: -100px; }
+.magic__sparks b:nth-child(5)  { --x: 0.31; top: 8%;  --sx: 10px;  --sy2: -70px; }
+.magic__sparks b:nth-child(6)  { --x: 0.38; top: 66%; --sx: -8px;  --sy2: -130px; }
+.magic__sparks b:nth-child(7)  { --x: 0.45; top: 26%; --sx: 14px;  --sy2: -90px; }
+.magic__sparks b:nth-child(8)  { --x: 0.52; top: 88%; --sx: -12px; --sy2: -160px; }
+.magic__sparks b:nth-child(9)  { --x: 0.59; top: 14%; --sx: 8px;   --sy2: -76px; }
+.magic__sparks b:nth-child(10) { --x: 0.66; top: 58%; --sx: -6px;  --sy2: -120px; }
+.magic__sparks b:nth-child(11) { --x: 0.73; top: 30%; --sx: 16px;  --sy2: -100px; }
+.magic__sparks b:nth-child(12) { --x: 0.8;  top: 78%; --sx: -10px; --sy2: -140px; }
+.magic__sparks b:nth-child(13) { --x: 0.88; top: 12%; --sx: 12px;  --sy2: -70px; }
+.magic__sparks b:nth-child(14) { --x: 0.96; top: 60%; --sx: -14px; --sy2: -110px; }
+
+.magic__paper.is-in .magic__sparks b {
+  animation: magic-spark 3.8s var(--ease) var(--lag) both;
+}
+
+@keyframes magic-spark {
+  0% {
+    opacity: 0;
+    translate: 0 0;
+    scale: 0.2;
+  }
+  15% {
+    opacity: 1;
+    scale: 1.2;
+  }
+  30% {
+    opacity: 0.4;
+    scale: 0.8;
+  }
+  45% {
+    opacity: 1;
+    scale: 1;
+  }
+  100% {
+    opacity: 0;
+    translate: var(--sx) var(--sy2);
+    scale: 0.4;
+  }
 }
 
 /* Gilded sweep across each number in turn (like the hero headline), every 9s */
@@ -110,9 +369,9 @@
   color: transparent;
 }
 
-.magic__steps.is-in .magic__num {
-  /* each number shines as its step rises in (steps arrive 0.9s + 0.45s apart), then every 9s */
-  animation: magic-num-shine 9s ease-in-out calc(1.15s + var(--i, 0) * 0.45s) infinite;
+.magic__paper.is-in .magic__num {
+  /* each number flashes gold as its step fades in, then every 9s */
+  animation: magic-num-shine 9s ease-in-out calc(var(--steps-at) + var(--i, 0) * var(--step-gap) + 0.35s) infinite;
 }
 
 @keyframes magic-num-shine {
@@ -135,7 +394,7 @@
 
 /* Hovering a step plays the sweep on its number straight away (a separate animation
    name restarts it from the beginning) */
-.magic__steps.is-in .magic__step:hover .magic__num {
+.magic__paper.is-in .magic__step:hover .magic__num {
   animation: magic-num-hover 1.6s ease-in-out both;
 }
 
@@ -157,13 +416,20 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .magic__step {
+  .magic__step,
+  .magic__parchment {
     opacity: 1;
-    translate: none;
+  }
+
+  .magic__paper.is-in .magic__step,
+  .magic__paper.is-in .magic__parchment,
+  .magic__paper.is-in .magic__smoke i,
+  .magic__paper.is-in .magic__sparks b {
+    animation: none;
     transition: none;
   }
 
-  .magic__steps.is-in .magic__num {
+  .magic__paper.is-in .magic__num {
     animation: none;
   }
 
@@ -196,8 +462,11 @@
     padding: 0 0 8px;
   }
 
-  .magic__steps {
+  .magic__paper {
     margin: 0;
+  }
+
+  .magic__steps {
     padding: 48px 24px;
     grid-template-columns: 1fr;
     gap: 40px;

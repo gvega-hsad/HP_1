@@ -1,0 +1,171 @@
+.image-modal {
+  width: min(1200px, 100% - 160px);
+  max-width: none;
+  max-height: none;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  overflow: visible;
+  color: var(--white);
+}
+
+.image-modal::backdrop {
+  background: rgba(10, 6, 8, 0.86);
+  backdrop-filter: blur(8px);
+}
+
+.image-modal[open] {
+  animation: image-modal-in 460ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.image-modal[open]::backdrop {
+  animation: image-modal-fade 460ms ease-out;
+}
+
+.image-modal__frame {
+  margin: 0;
+}
+
+.image-modal__img {
+  display: block;
+  width: 100%;
+  max-height: calc(100vh - 160px);
+  object-fit: contain;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 40px 120px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(246, 238, 216, 0.15);
+  transition:
+    opacity 220ms ease,
+    scale 220ms ease;
+  animation: image-modal-fade 320ms ease-out;
+}
+
+.image-modal__img.is-fading {
+  opacity: 0;
+  scale: 0.985;
+}
+
+.image-modal__caption {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 16px;
+  font-family: var(--font-goudy);
+  font-size: 16px;
+  line-height: 1.4;
+  color: rgba(246, 238, 216, 0.85);
+}
+
+.image-modal__count {
+  flex: none;
+  letter-spacing: 0.08em;
+  color: rgba(246, 238, 216, 0.6);
+}
+
+.image-modal__close,
+.image-modal__nav {
+  position: fixed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+  background: rgba(26, 16, 19, 0.6);
+  color: var(--white);
+  cursor: pointer;
+  transition:
+    background 200ms ease,
+    border-color 200ms ease,
+    transform 200ms ease;
+}
+
+.image-modal__close {
+  top: 24px;
+  right: 24px;
+  width: 44px;
+  height: 44px;
+}
+
+.image-modal__close:hover {
+  background: rgba(26, 16, 19, 0.9);
+  transform: rotate(90deg);
+}
+
+.image-modal__nav {
+  top: 50%;
+  width: 56px;
+  height: 56px;
+  translate: 0 -50%;
+}
+
+.image-modal__nav--prev {
+  left: 24px;
+}
+
+.image-modal__nav--next {
+  right: 24px;
+}
+
+.image-modal__nav:hover,
+.image-modal__nav:focus-visible {
+  border-color: var(--hp-butterbeer);
+  background: rgba(26, 16, 19, 0.9);
+}
+
+.image-modal__nav--prev:hover {
+  transform: translateX(-3px);
+}
+
+.image-modal__nav--next:hover {
+  transform: translateX(3px);
+}
+
+.image-modal :focus-visible {
+  outline: 2px solid var(--hp-butterbeer);
+  outline-offset: 3px;
+}
+
+@keyframes image-modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.96);
+  }
+}
+
+@keyframes image-modal-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* phones: arrows sit low over the image's sides; swipe works too */
+@media (max-width: 767px) {
+  .image-modal {
+    width: calc(100% - 32px);
+  }
+
+  .image-modal__nav {
+    top: auto;
+    bottom: 24px;
+    width: 48px;
+    height: 48px;
+    translate: none;
+  }
+
+  .image-modal__nav--prev {
+    left: calc(50% - 60px);
+  }
+
+  .image-modal__nav--next {
+    right: calc(50% - 60px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .image-modal[open],
+  .image-modal[open]::backdrop,
+  .image-modal__img {
+    animation: none;
+    transition: none;
+  }
+}

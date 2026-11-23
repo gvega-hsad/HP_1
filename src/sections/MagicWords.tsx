@@ -113,10 +113,58 @@ function useStepsGate(paper: React.RefObject<HTMLDivElement | null>) {
   }, [paper])
 }
 
+const CARD_FORM_MS = 2600 // phones: each step card condenses out of smoke over this long
+
+/**
+ * Phones: the steps are three separate parchment cards (as on HP_2). Each card
+ * materialises out of smoke (its own turbulence filter on its parchment layer) with a
+ * left-to-right sweep when it scrolls into view (.card-in), and resets once it drops
+ * below the screen again so it replays on the next pass down.
+ */
+function useStepCards(paper: React.RefObject<HTMLDivElement | null>) {
+  useEffect(() => {
+    const root = paper.current
+    if (!root) return
+    if (!window.matchMedia('(max-width: 767px)').matches) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const cards = Array.from(root.querySelectorAll<HTMLElement>('.magic__step'))
+    const timers = new Map<Element, number>()
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          const card = e.target as HTMLElement
+          const i = cards.indexOf(card)
+          const bg = card.querySelector<HTMLElement>('.magic__card-bg')
+          if (e.isIntersecting && !card.classList.contains('card-in')) {
+            card.classList.add('card-in')
+            if (bg) bg.style.filter = `url(#magic-card-smoke-${i})`
+            document
+              .getElementById(`magic-card-smoke-${i}`)
+              ?.querySelectorAll('animate')
+              .forEach((a) => (a as SVGAnimateElement).beginElement())
+            window.clearTimeout(timers.get(card))
+            timers.set(card, window.setTimeout(() => bg && (bg.style.filter = ''), CARD_FORM_MS + 80))
+          } else if (!e.isIntersecting && e.boundingClientRect.top >= (e.rootBounds?.bottom ?? window.innerHeight)) {
+            if (card.classList.contains('card-in')) card.classList.remove('card-in')
+            if (bg) bg.style.filter = ''
+          }
+        }
+      },
+      { threshold: 0.35 },
+    )
+    cards.forEach((c) => io.observe(c))
+    return () => {
+      io.disconnect()
+      timers.forEach((t) => window.clearTimeout(t))
+    }
+  }, [paper])
+}
+
 export default function MagicWords() {
   const paper = useRef<HTMLDivElement>(null)
   useSmokeMaterialise(paper)
   useStepsGate(paper)
+  useStepCards(paper)
 
   return (
     <section className="magic" data-section="magic-words">
@@ -150,6 +198,20 @@ export default function MagicWords() {
             />
           </feGaussianBlur>
         </filter>
+        {/* phones: one smoke filter per step card */}
+        {steps.map((s, i) => (
+          <filter key={s.n} id={`magic-card-smoke-${i}`} x="-40%" y="-60%" width="180%" height="220%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.018 0.032" numOctaves="3" seed={11 + i * 7} result="noise">
+              <animate attributeName="baseFrequency" begin="indefinite" dur="2.6s" values="0.018 0.032;0.005 0.01" fill="freeze" />
+            </feTurbulence>
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="0" xChannelSelector="R" yChannelSelector="G" result="wisp">
+              <animate attributeName="scale" begin="indefinite" dur="2.5s" values="160;0" keyTimes="0;1" calcMode="spline" keySplines="0.45 0 0.55 1" fill="freeze" />
+            </feDisplacementMap>
+            <feGaussianBlur in="wisp" stdDeviation="0">
+              <animate attributeName="stdDeviation" begin="indefinite" dur="2.2s" values="12;0" keyTimes="0;1" calcMode="spline" keySplines="0.45 0 0.55 1" fill="freeze" />
+            </feGaussianBlur>
+          </filter>
+        ))}
       </svg>
       <div className="magic__inner">
         <div className="magic__row">
@@ -187,6 +249,8 @@ export default function MagicWords() {
           <ol className="magic__steps">
             {steps.map((s, i) => (
               <li className="magic__step" key={s.n} style={{ '--i': i } as React.CSSProperties}>
+                {/* phones: each step is its own parchment card */}
+                <span className="magic__card-bg" aria-hidden="true" />
                 <span className="magic__num font-jazmin" aria-hidden="true">{s.n}</span>
                 <h3 className="subtitle-2">
                   <span className="visually-hidden">Step {s.n}: </span>

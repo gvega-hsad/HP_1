@@ -479,3 +479,77 @@
     padding-top: 0;
   }
 }
+
+/* ---------- Phones: three separate parchment cards (as on HP_2) ----------
+   The shared strip, its smoke and motes step aside; each step becomes a square
+   parchment card that condenses out of smoke with a left-to-right sweep as it scrolls
+   into view (.card-in, MagicWords.tsx), its number flashing gold as it lands. */
+.magic__card-bg {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .magic__feather,
+  .magic__smoke,
+  .magic__sparks {
+    display: none;
+  }
+
+  .magic__steps {
+    gap: 24px;
+    padding: 0;
+  }
+
+  .magic__step {
+    position: relative;
+    isolation: isolate;
+    justify-content: center;
+    width: 100%;
+    max-width: 396px;
+    aspect-ratio: 1;
+    margin-inline: auto;
+    padding: 32px;
+    border-radius: var(--radius-lg);
+  }
+
+  .magic__card-bg {
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: var(--hp-butterbeer) url('/assets/parchment.jpg') center / cover;
+  }
+
+  /* the strip's one-at-a-time gate doesn't drive the cards here */
+  .magic__paper .magic__step,
+  .magic__paper.steps-in .magic__step {
+    opacity: 0;
+    transition: none;
+  }
+
+  .magic__paper .magic__step.card-in {
+    animation:
+      magic-materialise 2.6s var(--ease) both,
+      magic-sweep 2.6s var(--ease) both;
+  }
+
+  .magic__paper .magic__step.card-in .magic__num {
+    animation: magic-num-shine 9s ease-in-out 2.1s infinite;
+  }
+
+  .magic__paper .magic__step.card-in:hover .magic__num {
+    animation: magic-num-hover 1.6s ease-in-out both;
+  }
+}
+
+@media (max-width: 767px) and (prefers-reduced-motion: reduce) {
+  .magic__paper .magic__step {
+    opacity: 1;
+  }
+
+  .magic__paper .magic__step.card-in,
+  .magic__paper .magic__step.card-in .magic__num {
+    animation: none;
+  }
+}

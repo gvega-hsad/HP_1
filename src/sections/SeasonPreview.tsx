@@ -83,7 +83,7 @@ export default function SeasonPreview() {
           <div ref={videoBox} className="season__media">
             <LoopingVideo
               className="season__video"
-              src={`${A}/hp-teaser-trailer.mp4`}
+              src={`${A}/HPLG_TV30_INCREDIBLE_V08_WIP04.mp4`}
               poster={`${A}/harry-preview.jpg`}
               label="Season one preview: Harry Potter in the HBO series"
               soundToggle
